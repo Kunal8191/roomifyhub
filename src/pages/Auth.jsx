@@ -8,17 +8,18 @@ function Auth() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    console.log("URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("KEY:", import.meta.env.VITE_SUPABASE_ANON_KEY);
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
+      options: {
+        emailRedirectTo: window.location.origin
+      }
     });
 
     if (error) {
       alert(error.message);
     } else {
-      alert("Check your email for the login link!");
+      alert("Check your email and click the login link");
     }
 
     setLoading(false);
@@ -26,12 +27,12 @@ function Auth() {
 
   return (
     <div style={{ maxWidth: "400px", margin: "100px auto" }}>
-      <h2>Login / Signup</h2>
+      <h2>Login</h2>
 
       <form onSubmit={handleLogin}>
         <input
           type="email"
-          placeholder="Enter email"
+          placeholder="Enter your email"
           value={email}
           required
           onChange={(e) => setEmail(e.target.value)}
@@ -39,7 +40,7 @@ function Auth() {
         />
 
         <button type="submit" disabled={loading}>
-          {loading ? "Sending link..." : "Send magic link"}
+          {loading ? "Sending link..." : "Send Login Link"}
         </button>
       </form>
     </div>
@@ -47,3 +48,5 @@ function Auth() {
 }
 
 export default Auth;
+
+
