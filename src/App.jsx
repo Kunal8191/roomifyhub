@@ -1,28 +1,57 @@
-import { useState } from 'react'
-import Navbar from './components/Navbar'
-import Home from './pages/Home'
-import AddRoom from './pages/AddRoom'
-import MyRooms from './pages/MyRooms'
-import roomsData from './data/roomsData'
+import { Routes, Route, Navigate } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import AddRoom from "./pages/AddRoom";
+import MyRooms from "./pages/MyRooms";
+import Auth from "./pages/Auth";
+import { useState } from "react";
+import { useAuth } from "./context/AuthContext";
+
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <p style={{ textAlign: "center" }}>Loading...</p>;
+
+  if (!user) {
+    return <Navigate to="/auth" />;
+  }
+
+  return children;
+}
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home')
-  const [rooms, setRooms] = useState(roomsData)
+  const [rooms, setRooms] = useState([]);
 
   return (
     <>
-      <Navbar setCurrentPage={setCurrentPage} />
+      <Navbar />
 
-      {currentPage === 'home' && <Home rooms={rooms} />}
-      {currentPage === 'add' && (
-        <AddRoom rooms={rooms} setRooms={setRooms} />
-      )}
-      {currentPage === 'my' && (
-  <MyRooms rooms={rooms} setRooms={setRooms} />
-)}
+      <Routes>
+        <Route path="/" element={<Home rooms={rooms} setRooms={setRooms} />} />
 
+
+        <Route
+          path="/add"
+          element={
+            <ProtectedRoute>
+              <AddRoom rooms={rooms} setRooms={setRooms} />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/my"
+          element={
+            <ProtectedRoute>
+              <MyRooms rooms={rooms} setRooms={setRooms} />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/auth" element={<Auth />} />
+      </Routes>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

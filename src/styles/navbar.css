@@ -1,28 +1,16 @@
-.navbar {
+nav {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 30px;
-  background-color: #1e2a38;
+  gap: 20px;
+  padding: 16px 24px;
+  background-color: #0f172a;
+}
+
+nav a {
   color: white;
+  text-decoration: none;
+  font-weight: 500;
 }
 
-.logo {
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.nav-links {
-  list-style: none;
-  display: flex;
-  gap: 25px;
-}
-
-.nav-links li {
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.nav-links li:hover {
-  color: #4fd1c5;
+nav a:hover {
+  color: #38bdf8;
 }

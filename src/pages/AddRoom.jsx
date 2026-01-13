@@ -1,44 +1,88 @@
-import { useState } from 'react'
+import { useState } from "react";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
 
-function AddRoom({ rooms, setRooms }) {
+function AddRoom() {
+  const { user } = useAuth();
+  const [imageFile, setImageFile] = useState(null);
+
   const [formData, setFormData] = useState({
-    title: '',
-    location: '',
-    price: '',
-    type: '',
-    tenant: '',
-    contact: ''
-  })
+    title: "",
+    location: "",
+    price: "",
+    type: "",
+    tenant: "",
+    contact: ""
+  });
 
   function handleChange(e) {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
-    })
+    });
   }
 
-  function handleSubmit(e) {
-    e.preventDefault()
+  async function handleSubmit(e) {
+    e.preventDefault();
 
-    const newRoom = {
-      id: Date.now(),
-      ...formData,
-      price: Number(formData.price),
-      image: 'https://via.placeholder.com/300x180'
+    if (!user) {
+      alert("Please login");
+      return;
     }
 
-    setRooms([...rooms, newRoom])
+    if (!imageFile) {
+      alert("Please upload an image");
+      return;
+    }
 
-    alert('Room added successfully!')
+    // 1️⃣ Upload image to Supabase Storage
+    const fileName = `${Date.now()}-${imageFile.name}`;
 
-    setFormData({
-      title: '',
-      location: '',
-      price: '',
-      type: '',
-      tenant: '',
-      contact: ''
-    })
+    const { error: uploadError } = await supabase.storage
+      .from("room-images")
+      .upload(fileName, imageFile);
+
+    if (uploadError) {
+      alert(uploadError.message);
+      return;
+    }
+
+    // 2️⃣ Get public image URL
+    const { data: imageData } = supabase.storage
+      .from("room-images")
+      .getPublicUrl(fileName);
+
+    const imageUrl = imageData.publicUrl;
+
+    // 3️⃣ Insert room into database
+    const { error } = await supabase.from("rooms").insert([
+      {
+        title: formData.title,
+        location: formData.location,
+        price: Number(formData.price),
+        type: formData.type,
+        tenant: formData.tenant,
+        contact: formData.contact,
+        image_url: imageUrl,
+        user_id: user.id
+      }
+    ]);
+
+    if (error) {
+      alert(error.message);
+    } else {
+      alert("Room added successfully!");
+
+      setFormData({
+        title: "",
+        location: "",
+        price: "",
+        type: "",
+        tenant: "",
+        contact: ""
+      });
+      setImageFile(null);
+    }
   }
 
   return (
@@ -66,10 +110,18 @@ function AddRoom({ rooms, setRooms }) {
 
         <input name="contact" placeholder="Contact Number" value={formData.contact} onChange={handleChange} required />
 
+        {/* Image Upload */}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImageFile(e.target.files[0])}
+          required
+        />
+
         <button type="submit">Add Room</button>
       </form>
     </div>
-  )
+  );
 }
 
-export default AddRoom
+export default AddRoom;
